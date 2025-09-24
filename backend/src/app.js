@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import path from "path";
+import { connectDataBase } from "./lib/db.js";
 
 // routes import
 import authRouter from "./routes/auth.route.js";
@@ -8,6 +9,8 @@ import authRouter from "./routes/auth.route.js";
 dotenv.config({ quiet: true });
 
 const app = express();
+
+// middlewares
 app.use(express.json());
 
 const __dirname = path.resolve();
@@ -28,4 +31,5 @@ if (process.env.NODE_ENV === "production") {
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  connectDataBase();
 });
