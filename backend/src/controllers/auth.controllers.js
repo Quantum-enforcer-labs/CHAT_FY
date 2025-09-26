@@ -2,6 +2,7 @@ import User from "../models/User.model.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../lib/utils.js";
 import { welcomeEmail } from "../emails/emailHandlers.js";
+import { imagekit } from "../lib/imageKit.js";
 
 import { ENV } from "../lib/env.js";
 
@@ -97,4 +98,40 @@ export const userLogOut = (_, res) => {
     sameSite: "strict",
   });
   return res.status(200).json({ message: "Logout successful" });
+};
+
+export const updateUserProfile = async (req, res) => {
+  try {
+    const { profilePic } = req.body;
+
+    if (!profilePic)
+      return res.status(400).json({ message: "Profile picture is required" });
+
+    const userId = req.user._id;
+
+    const uploadResponse = await imagekit.upload({
+      file: profilePic,
+      fileName: `profile_pic_${userId}`,
+      folder: "/profile_pictures/",
+    });
+
+    if (uploadResponse) {
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { profilePic: uploadResponse.url },
+        { new: true }
+      ).select("-password");
+      if (!updatedUser)
+        return res.status(404).json({ message: "User not found" });
+
+      res.status(200).json({
+        message: "Profile picture updated successfully",
+        user: updatedUser,
+      });
+    } else {
+      res.status(500).json({ message: "Image upload failed" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
 };

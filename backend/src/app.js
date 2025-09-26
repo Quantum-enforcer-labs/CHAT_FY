@@ -1,4 +1,5 @@
 import express from "express";
+import cookieParser from "cookie-parser";
 import path from "path";
 import { connectDataBase } from "./lib/db.js";
 import { ENV } from "./lib/env.js";
@@ -10,6 +11,7 @@ const app = express();
 
 // middlewares
 app.use(express.json());
+app.use(cookieParser());
 
 const __dirname = path.resolve();
 
