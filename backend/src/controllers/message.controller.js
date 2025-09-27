@@ -96,7 +96,7 @@ export const sendMessage = async (req, res) => {
 
     if (!receiverIdExists) {
       return res.status(400).json({
-        message: "Reciever not found",
+        message: "Reciever not found in the database",
       });
     }
     let imageUrl = "";
