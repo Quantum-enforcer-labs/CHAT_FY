@@ -6,6 +6,7 @@ import { ENV } from "./lib/env.js";
 
 // routes import
 import authRouter from "./routes/auth.route.js";
+import messageRouter from "./routes/message.route.js";
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.use(cookieParser());
 const __dirname = path.resolve();
 
 app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/messages", messageRouter);
 
 const PORT = ENV.PORT || 5000;
 
