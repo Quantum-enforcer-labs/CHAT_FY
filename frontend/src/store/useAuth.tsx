@@ -8,6 +8,7 @@ interface authState {
   isCheckingAuth: boolean;
   checkAuth: () => Promise<void>;
   setAuthUser: (user: User | null) => void;
+  clearAuth: () => void;
 }
 
 export const useAuthStore = create<authState>((set) => ({
@@ -26,4 +27,5 @@ export const useAuthStore = create<authState>((set) => ({
     }
   },
   setAuthUser: (user: User | null) => set({ authUser: user }),
+  clearAuth: () => set({ authUser: null }),
 }));
