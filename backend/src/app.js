@@ -3,6 +3,7 @@ import cookieParser from "cookie-parser";
 import path from "path";
 import { connectDataBase } from "./lib/db.js";
 import { ENV } from "./lib/env.js";
+import cors from "cors";
 
 // routes import
 import authRouter from "./routes/auth.route.js";
@@ -12,6 +13,7 @@ const app = express();
 
 // middlewares
 app.use(express.json());
+app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
 app.use(cookieParser());
 
 const __dirname = path.resolve();

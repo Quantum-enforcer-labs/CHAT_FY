@@ -1,16 +1,19 @@
-import { resendClient, sender } from "../lib/resend.js";
 import { chatFySignupEmail } from "./emailsTemplate.js";
+import { transporter } from "../lib/nodemailer.js";
+import { ENV } from "../lib/env.js";
 
 export const welcomeEmail = async (email, name, clientUrl) => {
-  const { data, error } = await resendClient.emails.send({
-    from: `${sender.name} <${sender.email}>`,
+  const mailOptions = {
+    from: ENV.EMAIL_USER,
     to: email,
-    subject: "Welcome to Chat_Fy!",
+    subject: "Welcome to ChatFy! 🎉",
     html: chatFySignupEmail(name, clientUrl),
-  });
-  if (error) {
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log("Welcome email sent to:", email);
+  } catch (error) {
     console.error("Error sending welcome email:", error);
-  } else {
-    console.log("Welcome email sent successfully:", data);
   }
 };
