@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "./index.css";
+import { Toaster } from "react-hot-toast";
 
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen";
@@ -40,6 +41,7 @@ root.render(
   <QueryClientProvider client={queryClient}>
     <StrictMode>
       <RouterProvider router={router} />
+      <Toaster />
     </StrictMode>
   </QueryClientProvider>
 );
