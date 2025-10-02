@@ -4,6 +4,7 @@ import { useAuthStore } from "../store/useAuth";
 import type { User, credentials } from "../types/types";
 import { useNavigate } from "@tanstack/react-router";
 import { AxiosError } from "axios";
+import toast from "react-hot-toast";
 
 export function useSignup() {
   const setAuthUser = useAuthStore((s) => s.setAuthUser);
@@ -29,6 +30,7 @@ export function useSignup() {
     },
     onSuccess: (data) => {
       setAuthUser(data.user);
+      toast.success("Account created successfully");
       navigate({ to: "/" });
       queryClient.invalidateQueries({ queryKey: ["user"] });
     },
@@ -54,21 +56,27 @@ export function useLogin() {
     onSuccess: (data) => {
       setAuthUser(data.user);
       navigate({ to: "/" });
+      toast.success("Logged in successfully");
+    },
+    onError: (error) => {
+      setAuthUser(null);
+      console.error("Error during login:", error);
     },
   });
 }
 
-// export function useLogout() {
-//   const clearAuth = useAuthStore((s) => s.clearAuth);
-//   const navigate = useNavigate();
+export function useLogout() {
+  const clearAuth = useAuthStore((s) => s.clearAuth);
+  const navigate = useNavigate();
 
-//   return useMutation({
-//     mutationFn: async () => {
-//       await axiosInstance.post("/auth/logout");
-//     },
-//     onSuccess: () => {
-//       clearAuth();
-//       navigate({ to: "/auth/login" });
-//     },
-//   });
-// }
+  return useMutation({
+    mutationFn: async () => {
+      await axiosInstance.post("/auth/logout");
+    },
+    onSuccess: () => {
+      clearAuth();
+      navigate({ to: "/auth/login" });
+      toast.success("Logged out successfully");
+    },
+  });
+}
