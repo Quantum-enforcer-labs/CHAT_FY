@@ -1,8 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useAuthStore } from "../store/useAuth";
 import { PageLoader } from "../components/PageLoader";
+import ProfileHeader from "../components/ProfileHeader";
 import { useEffect } from "react";
-import { useLogout } from "../hooks/userAuthLogic";
+
+import ActiveTabSwitch from "../components/ActiveTabSwitch";
+import ChatList from "../components/ChatList";
+import ContactList from "../components/ContactList";
+import { useChatStore } from "../store/useChatStore";
+import ConversationContainer from "../components/ConversationContainer";
+import Placeholder from "../components/Placeholder";
 
 export const Route = createFileRoute("/")({
   component: RouteComponent,
@@ -11,7 +18,8 @@ export const Route = createFileRoute("/")({
 function RouteComponent() {
   const { authUser, isCheckingAuth, checkAuth } = useAuthStore();
   const navigate = useNavigate();
-  const { mutate: logout } = useLogout();
+
+  const { activeTab, selectedUser } = useChatStore();
 
   useEffect(() => {
     checkAuth();
@@ -30,18 +38,18 @@ function RouteComponent() {
   }
 
   return (
-    <div>
-      {authUser && (
-        <h1 className="bg-amber-600">Welcome back, {authUser.email}!</h1>
-      )}
-      <button
-        onClick={() => {
-          logout();
-        }}
-        className="bg-red-500 text-white px-4 py-2 rounded mt-4"
-      >
-        Logout
-      </button>
+    <div className="relative w-full max-w-6xl h-[800px]">
+      {/* left side */}
+      <div>
+        <ProfileHeader />
+        <ActiveTabSwitch />
+
+        <div>{activeTab === "chats" ? <ChatList /> : <ContactList />}</div>
+      </div>
+
+      {/* right side */}
+
+      <div>{selectedUser ? <ConversationContainer /> : <Placeholder />}</div>
     </div>
   );
 }
