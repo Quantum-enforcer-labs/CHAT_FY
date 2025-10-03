@@ -17,7 +17,6 @@ export function useSignup() {
       try {
         const response = await axiosInstance.post<{
           user: User;
-          token: string;
         }>("/auth/sign-up", data);
         return response.data;
       } catch (err: unknown) {
@@ -47,11 +46,18 @@ export function useLogin() {
 
   return useMutation({
     mutationFn: async (data: credentials) => {
-      const response = await axiosInstance.post<{ user: User }>(
-        "/auth/login",
-        data
-      );
-      return response.data;
+      try {
+        const response = await axiosInstance.post<{
+          user: User;
+        }>("/auth/login", data);
+        return response.data;
+      } catch (err: unknown) {
+        const error = err as AxiosError<{ message: string }>;
+        if (error.response && error.response.data) {
+          throw error.response.data;
+        }
+      }
+      throw { message: "Network error" };
     },
     onSuccess: (data) => {
       setAuthUser(data.user);
