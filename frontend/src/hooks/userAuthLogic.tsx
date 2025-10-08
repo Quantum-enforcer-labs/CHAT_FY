@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance } from "../lib/axios";
 import { useAuthStore } from "../store/useAuth";
-import type { User, credentials } from "../types/types";
+import type { User, Credentials } from "../types/types";
 import { useNavigate } from "@tanstack/react-router";
 import { AxiosError } from "axios";
 import toast from "react-hot-toast";
@@ -45,7 +45,7 @@ export function useLogin() {
   const navigate = useNavigate();
 
   return useMutation({
-    mutationFn: async (data: credentials) => {
+    mutationFn: async (data: Credentials) => {
       try {
         const response = await axiosInstance.post<{
           user: User;

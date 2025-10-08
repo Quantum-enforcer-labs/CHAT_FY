@@ -31,25 +31,25 @@ function RouteComponent() {
     }
   }, [isCheckingAuth, authUser, navigate]);
 
-  console.log({ authUser, isCheckingAuth });
-
   if (isCheckingAuth) {
     return <PageLoader />;
   }
 
   return (
-    <div className="relative w-full max-w-6xl h-[800px]">
-      {/* left side */}
-      <div>
+    <div className="relative w-full max-w-6xl h-[800px] flex bg-gray-900 rounded-xl overflow-hidden">
+      {/* left sidebar */}
+      <div className="w-1/3 bg-gray-800 border-r border-gray-700 flex flex-col">
         <ProfileHeader />
         <ActiveTabSwitch />
-
-        <div>{activeTab === "chats" ? <ChatList /> : <ContactList />}</div>
+        <div className="flex-1 overflow-y-auto">
+          {activeTab === "chats" ? <ChatList /> : <ContactList />}
+        </div>
       </div>
 
-      {/* right side */}
-
-      <div>{selectedUser ? <ConversationContainer /> : <Placeholder />}</div>
+      {/* right content */}
+      <div className="flex-1 flex flex-col bg-gray-900">
+        {selectedUser ? <ConversationContainer /> : <Placeholder />}
+      </div>
     </div>
   );
 }
