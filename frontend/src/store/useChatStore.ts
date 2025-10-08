@@ -14,11 +14,13 @@ interface ChatState {
   isUserLoading: boolean;
   isChatLoading: boolean;
   isSoundOn: boolean;
+  isMessageLoading: boolean;
   toggleSound: () => void;
   setActiveTab: (tab: "chats" | "contacts" | null) => void;
   setSelectedUser: (user: Contact | null) => void;
   getAllContacts: () => Promise<void>;
   getMyChatParteners: () => Promise<void>;
+  getMessagesByUserId: (id: string) => Promise<void>;
 }
 
 // Create the store
@@ -26,6 +28,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   allContacts: [],
   chats: [],
   messages: [],
+  isMessageLoading: false,
   activeTab: null,
   selectedUser: null,
   isUserLoading: false,
@@ -67,6 +70,19 @@ export const useChatStore = create<ChatState>((set, get) => ({
       toast.error(error.response?.data?.message ?? "Error getting chats");
     } finally {
       set({ isChatLoading: false });
+    }
+  },
+
+  getMessagesByUserId: async (id) => {
+    set({ isMessageLoading: true });
+    try {
+      const res = await axiosInstance.get(`/messages/${id}`); // Ensure endpoint is correct
+      set({ messages: res.data });
+    } catch (err) {
+      const error = err as AxiosError<{ message?: string }>;
+      toast.error(error.response?.data?.message ?? "Error getting messages");
+    } finally {
+      set({ isMessageLoading: false });
     }
   },
 }));

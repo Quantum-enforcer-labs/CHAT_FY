@@ -1,4 +1,5 @@
 export interface User {
+  id: string;
   fullName: string;
   email: string;
   password: string;
@@ -31,4 +32,5 @@ export interface Message {
   content: string;
   timestamp: string;
   read: boolean;
+  image?: string;
 }
