@@ -31,8 +31,6 @@ const ProfileHeader = () => {
     reader.readAsDataURL(file);
   };
 
-  console.log(authUser);
-
   return (
     <div className="px-4 py-3 border-b border-slate-700/50 bg-gradient-to-r from-slate-900 via-slate-900/90 to-slate-900/80 backdrop-blur-sm shadow-md rounded-b-lg">
       <div className="flex items-center justify-between">
