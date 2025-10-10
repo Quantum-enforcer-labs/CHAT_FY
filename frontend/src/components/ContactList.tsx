@@ -14,42 +14,45 @@ const ContactList = () => {
 
   return (
     <div className="px-3 flex flex-col gap-1 divide-y divide-slate-800 bg-slate-900/40 backdrop-blur-md rounded-lg overflow-hidden">
-      {allContacts.map((contact) => (
-        <div
-          key={contact.id}
-          onClick={() => setSelectedUser(contact)}
-          className="flex items-center gap-3 p-3 cursor-pointer transition-all duration-200 hover:bg-slate-800/70 active:scale-[0.98] rounded-md"
-        >
-          <div className="relative">
-            <img
-              src={contact.avatarUrl || "/profile_pic.jpg"}
-              alt={contact.fullName || "User"}
-              className="w-10 h-10 rounded-full object-cover border border-slate-700 hover:border-cyan-400 transition-colors"
-            />
-            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-slate-900"></span>
-          </div>
+      {allContacts.map((contact) => {
+        // Always ensure `contact.id` is unique and stable
+        return (
+          <div
+            key={contact._id} // ✅ Correct placement
+            onClick={() => setSelectedUser(contact)}
+            className="flex items-center gap-3 p-3 cursor-pointer transition-all duration-200 hover:bg-slate-800/70 active:scale-[0.98] rounded-md"
+          >
+            <div className="relative">
+              <img
+                src={contact.avatarUrl || "/profile_pic.jpg"}
+                alt={contact.fullName || "User"}
+                className="w-10 h-10 rounded-full object-cover border border-slate-700 hover:border-cyan-400 transition-colors"
+              />
+              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-slate-900" />
+            </div>
 
-          <div className="flex-1 min-w-0">
-            <h4 className="text-slate-200 font-medium text-sm truncate">
-              {contact.fullName || "User"}
-            </h4>
-            {contact.lastMessage && (
-              <p className="text-slate-400 text-xs truncate">
-                {contact.lastMessage}
-              </p>
+            <div className="flex-1 min-w-0">
+              <h4 className="text-slate-200 font-medium text-sm truncate">
+                {contact.fullName || "User"}
+              </h4>
+              {contact.lastMessage && (
+                <p className="text-slate-400 text-xs truncate">
+                  {contact.lastMessage}
+                </p>
+              )}
+            </div>
+
+            {contact.lastMessageTime && (
+              <span className="text-[10px] text-slate-500 whitespace-nowrap">
+                {new Date(contact.lastMessageTime).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
             )}
           </div>
-
-          {contact.lastMessageTime && (
-            <span className="text-[10px] text-slate-500 whitespace-nowrap">
-              {new Date(contact.lastMessageTime).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </span>
-          )}
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };

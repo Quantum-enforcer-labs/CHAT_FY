@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Contact, Message } from "../types/types";
+import type { Contact, Message, MessageData } from "../types/types";
 import { axiosInstance } from "../lib/axios";
 import toast from "react-hot-toast";
 import { AxiosError } from "axios";
@@ -19,8 +19,9 @@ interface ChatState {
   setActiveTab: (tab: "chats" | "contacts" | null) => void;
   setSelectedUser: (user: Contact | null) => void;
   getAllContacts: () => Promise<void>;
-  getMyChatParteners: () => Promise<void>;
+  getMyChatPartners: () => Promise<void>;
   getMessagesByUserId: (id: string) => Promise<void>;
+  sendMessage: (data: MessageData) => Promise<void>;
 }
 
 // Create the store
@@ -60,7 +61,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     }
   },
 
-  getMyChatParteners: async () => {
+  getMyChatPartners: async () => {
     set({ isChatLoading: true });
     try {
       const res = await axiosInstance.get("/messages/chats"); // Ensure endpoint is correct
@@ -75,6 +76,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   getMessagesByUserId: async (id) => {
     set({ isMessageLoading: true });
+
     try {
       const res = await axiosInstance.get(`/messages/${id}`); // Ensure endpoint is correct
       set({ messages: res.data });
@@ -83,6 +85,21 @@ export const useChatStore = create<ChatState>((set, get) => ({
       toast.error(error.response?.data?.message ?? "Error getting messages");
     } finally {
       set({ isMessageLoading: false });
+    }
+  },
+
+  sendMessage: async (data) => {
+    const { messages, selectedUser } = get();
+
+    try {
+      const res = await axiosInstance.post(
+        `/messages/send/${selectedUser?._id}`,
+        data
+      );
+      set({ messages: messages.concat(res.data) });
+    } catch (err) {
+      const error = err as AxiosError<{ message?: string }>;
+      toast.error(error.response?.data?.message ?? "Error sending message");
     }
   },
 }));
