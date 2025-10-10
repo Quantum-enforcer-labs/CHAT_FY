@@ -12,7 +12,7 @@ export interface Credentials {
 }
 
 export interface UpdateProfileData {
-  image: string | File | null;
+  image: string | null;
 }
 
 export interface Contact {
