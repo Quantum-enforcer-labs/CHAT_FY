@@ -81,48 +81,50 @@ export const sendMessage = async (req, res) => {
     const { text, image } = req.body;
     const senderId = req.user._id;
 
-    if (!text || !image) {
+    // Require at least text or image
+    if (!text && !image) {
       return res.status(400).json({
-        message: "Text or Image is required",
+        message: "Either text or image is required",
       });
     }
-    if (senderId === receiverId) {
+
+    if (senderId.toString() === receiverId) {
       return res.status(400).json({
-        message: "You can not send messages to yourself",
+        message: "You cannot send messages to yourself",
       });
     }
 
     const receiverIdExists = await User.exists({ _id: receiverId });
-
     if (!receiverIdExists) {
-      return res.status(400).json({
-        message: "Reciever not found",
+      return res.status(404).json({
+        message: "Receiver not found",
       });
     }
-    let imageUrl = "";
 
+    let imageUrl = "";
     if (image) {
       const uploadResponse = await imagekit.upload({
-        file: image,
+        file: image, // base64 string from frontend
         fileName: `${Date.now()}_message_image_${senderId}`,
         folder: "/message_images/",
       });
       imageUrl = uploadResponse.url;
     }
+
     const newMessage = new Message({
-      senderId: senderId,
-      receiverId: receiverId,
-      text: text,
-      image: imageUrl,
+      senderId,
+      receiverId,
+      text: text || "",
+      image: imageUrl || "",
     });
 
     await newMessage.save();
 
-    // real time sending
-    res.status(201).json(newMessage);
+    return res.status(201).json(newMessage);
   } catch (error) {
-    return res
-      .status(500)
-      .json({ message: "Internal server error", error: error.message });
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };

@@ -12,11 +12,13 @@ export interface Credentials {
 }
 
 export interface UpdateProfileData {
-  image: string | File | null;
+  username?: string;
+  email?: string;
+  avatar?: string;
 }
 
 export interface Contact {
-  id: string;
+  _id: string;
   fullName: string;
   email: string;
   avatarUrl?: string;
@@ -25,12 +27,16 @@ export interface Contact {
 }
 
 export interface Message {
-  id: string;
-  chatId: string;
+  _id: string;
   senderId: string;
   receiverId: string;
-  content: string;
-  timestamp: string;
-  read: boolean;
-  image?: string;
+  text: string;
+  image: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MessageData {
+  text: string;
+  image: string | null;
 }
