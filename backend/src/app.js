@@ -26,7 +26,7 @@ app.use("/api/v1/messages", messageRouter);
 
 // Serve frontend in production
 if (ENV.NODE_ENV === "production") {
-  const distPath = path.resolve(__dirname, "../frontend/dist");
+  const distPath = path.resolve(__dirname, "../../frontend/dist");
   const indexPath = path.join(distPath, "index.html");
 
   app.use(express.static(distPath));
