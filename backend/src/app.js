@@ -1,15 +1,20 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import path from "path";
+import { fileURLToPath } from "url";
+import fs from "fs";
+import cors from "cors";
 import { connectDataBase } from "./lib/db.js";
 import { ENV } from "./lib/env.js";
-import cors from "cors";
 import { app, server } from "./lib/socket.js";
-import fs from "fs";
 
 // routes import
 import authRouter from "./routes/auth.route.js";
 import messageRouter from "./routes/message.route.js";
+
+// Recreate __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // middleware
 app.use(express.json({ limit: "10mb" }));
@@ -20,15 +25,14 @@ app.use(cookieParser());
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/messages", messageRouter);
 
-// Static file serving for production
+// Serve frontend in production
 if (ENV.NODE_ENV === "production") {
-  const distPath = path.join(__dirname, "../frontend/dist");
+  const distPath = path.resolve(__dirname, "../frontend/dist");
+  const indexPath = path.join(distPath, "index.html");
 
   app.use(express.static(distPath));
 
   app.get("*", (_, res) => {
-    const indexPath = path.join(distPath, "index.html");
-
     if (fs.existsSync(indexPath)) {
       res.sendFile(indexPath);
     } else {
@@ -42,7 +46,14 @@ if (ENV.NODE_ENV === "production") {
 
 const PORT = ENV.PORT || 5000;
 
-server.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
-  connectDataBase();
-});
+// Connect to DB first, then start server
+connectDataBase()
+  .then(() => {
+    server.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("❌ Failed to connect to database:", err.message);
+    process.exit(1);
+  });
