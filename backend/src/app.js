@@ -4,12 +4,11 @@ import path from "path";
 import { connectDataBase } from "./lib/db.js";
 import { ENV } from "./lib/env.js";
 import cors from "cors";
+import { app, server } from "./lib/socket.js";
 
 // routes import
 import authRouter from "./routes/auth.route.js";
 import messageRouter from "./routes/message.route.js";
-
-const app = express();
 
 // middlewares
 app.use(express.json({ limit: "10mb" }));
@@ -33,7 +32,7 @@ if (ENV.NODE_ENV === "production") {
   });
 }
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   connectDataBase();
 });
