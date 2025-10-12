@@ -2,9 +2,15 @@ import { useEffect } from "react";
 import { useChatStore } from "../store/useChatStore";
 import { motion } from "motion/react";
 import { X } from "lucide-react";
+import { useAuthStore } from "../store/useAuth";
 
 const ChatHeader = () => {
   const { selectedUser, setSelectedUser } = useChatStore();
+  const { onlineUsers } = useAuthStore();
+
+  const isOnline = selectedUser?._id
+    ? onlineUsers.includes(selectedUser._id)
+    : false;
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -27,14 +33,26 @@ const ChatHeader = () => {
     >
       {/* Left Section */}
       <div className="flex items-center gap-4">
-        {/* Avatar Glow */}
+        {/* Avatar + Status */}
         <div className="relative">
-          <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-cyan-500 to-purple-500 blur-sm opacity-60 animate-pulse" />
+          {/* Outer glow if online */}
+          {isOnline && (
+            <div className="absolute inset-0 rounded-full bg-green-400 blur-sm opacity-70 animate-pulse" />
+          )}
           <div className="relative w-12 h-12 rounded-full overflow-hidden ring-2 ring-slate-700 shadow-inner">
             <img
               src={selectedUser?.avatarUrl || "/profile_pic.jpg"}
               alt={selectedUser?.fullName || "User"}
               className="object-cover w-full h-full"
+            />
+
+            {/* Status dot */}
+            <span
+              className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-[2px] border-slate-800 transition-all duration-300 ${
+                isOnline
+                  ? "bg-green-400 shadow-[0_0_10px_#22c55e]"
+                  : "bg-gray-500"
+              }`}
             />
           </div>
         </div>
@@ -44,13 +62,13 @@ const ChatHeader = () => {
           <h4 className="text-slate-100 font-semibold text-base truncate">
             {selectedUser?.fullName || "User"}
           </h4>
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
-            </span>
-            <p className="text-slate-400 text-xs">Online</p>
-          </div>
+          <p
+            className={`text-xs ${
+              isOnline ? "text-green-400" : "text-slate-400"
+            } transition-colors duration-300`}
+          >
+            {isOnline ? "Online" : "Offline"}
+          </p>
         </div>
       </div>
 
