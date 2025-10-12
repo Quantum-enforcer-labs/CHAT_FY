@@ -8,90 +8,99 @@ import toast from "react-hot-toast";
 
 export function useSignup() {
   const setAuthUser = useAuthStore((s) => s.setAuthUser);
+  const connectSocket = useAuthStore((s) => s.connectSocket);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const connectSocket = useAuthStore((s) => s.connectSocket);
-
   return useMutation({
-    mutationKey: ["user"],
+    mutationKey: ["signup"],
     mutationFn: async (data: User) => {
       try {
-        const response = await axiosInstance.post<{
-          user: User;
-        }>("/auth/sign-up", data);
+        const response = await axiosInstance.post<{ user: User }>(
+          "/auth/sign-up",
+          data
+        );
         return response.data;
       } catch (err: unknown) {
-        const error = err as AxiosError<{ message: string }>;
-        if (error.response && error.response.data) {
-          throw error.response.data;
-        }
+        const error = err as AxiosError<{ message?: string }>;
+        const message = error.response?.data?.message ?? "Signup failed";
+        throw new Error(message);
       }
-      throw { message: "Network error" };
     },
     onSuccess: (data) => {
       setAuthUser(data.user);
-      toast.success("Account created successfully");
       connectSocket();
+      toast.success("Account created successfully");
       navigate({ to: "/" });
       queryClient.invalidateQueries({ queryKey: ["user"] });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       setAuthUser(null);
-      console.error("Error during signup:", error);
+      toast.error(error.message);
+      console.error("Signup error:", error.message);
     },
   });
 }
 
 export function useLogin() {
   const setAuthUser = useAuthStore((s) => s.setAuthUser);
+  const connectSocket = useAuthStore((s) => s.connectSocket);
   const navigate = useNavigate();
 
-  const connectSocket = useAuthStore((s) => s.connectSocket);
-
   return useMutation({
+    mutationKey: ["login"],
     mutationFn: async (data: Credentials) => {
       try {
-        const response = await axiosInstance.post<{
-          user: User;
-        }>("/auth/login", data);
+        const response = await axiosInstance.post<{ user: User }>(
+          "/auth/login",
+          data
+        );
         return response.data;
       } catch (err: unknown) {
-        const error = err as AxiosError<{ message: string }>;
-        if (error.response && error.response.data) {
-          throw error.response.data;
-        }
+        const error = err as AxiosError<{ message?: string }>;
+        const message = error.response?.data?.message ?? "Login failed";
+        throw new Error(message);
       }
-      throw { message: "Network error" };
     },
     onSuccess: (data) => {
       setAuthUser(data.user);
-      navigate({ to: "/" });
-      toast.success("Logged in successfully");
       connectSocket();
+      toast.success("Logged in successfully");
+      navigate({ to: "/" });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       setAuthUser(null);
-      console.error("Error during login:", error);
+      toast.error(error.message);
+      console.error("Login error:", error.message);
     },
   });
 }
 
 export function useLogout() {
   const clearAuth = useAuthStore((s) => s.clearAuth);
+  const disconnectSocket = useAuthStore((s) => s.disconnectSocket);
   const navigate = useNavigate();
 
-  const disconnectSocket = useAuthStore((s) => s.disconnectSocket);
-
   return useMutation({
+    mutationKey: ["logout"],
     mutationFn: async () => {
-      await axiosInstance.post("/auth/logout");
+      try {
+        await axiosInstance.post("/auth/logout");
+      } catch (err: unknown) {
+        const error = err as AxiosError<{ message?: string }>;
+        const message = error.response?.data?.message ?? "Logout failed";
+        throw new Error(message);
+      }
     },
     onSuccess: () => {
-      clearAuth();
-      navigate({ to: "/auth/login" });
-      toast.success("Logged out successfully");
       disconnectSocket();
+      clearAuth();
+      toast.success("Logged out successfully");
+      navigate({ to: "/auth/login" });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+      console.error("Logout error:", error.message);
     },
   });
 }

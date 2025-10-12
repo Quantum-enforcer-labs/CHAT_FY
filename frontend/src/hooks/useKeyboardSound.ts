@@ -1,3 +1,5 @@
+import { useRef } from "react";
+
 const keySoundFiles = [
   "/sounds/keyboard/1.mp3",
   "/sounds/keyboard/2.mp3",
@@ -6,24 +8,30 @@ const keySoundFiles = [
 ];
 
 export const useKeyboardSound = () => {
+  // Preload audio elements once
+  const audioRefs = useRef<HTMLAudioElement[]>(
+    keySoundFiles.map((src) => {
+      const audio = new Audio(src);
+      audio.preload = "auto";
+      return audio;
+    })
+  );
+
   const playRandomSound = () => {
-    const randomIndex = Math.floor(Math.random() * keySoundFiles.length);
-    const audioSrc = keySoundFiles[randomIndex];
+    const randomIndex = Math.floor(Math.random() * audioRefs.current.length);
+    const audio = audioRefs.current[randomIndex];
 
     try {
-      const audio = new Audio(audioSrc);
       audio.currentTime = 0;
-
-      // Ensure audio is allowed to play (some browsers require user interaction)
       const playPromise = audio.play();
 
       if (playPromise !== undefined) {
         playPromise.catch((err) => {
-          console.warn("Audio playback blocked by browser:", err);
+          console.warn("🔇 Audio playback blocked by browser:", err);
         });
       }
     } catch (error) {
-      console.error("Failed to play keyboard sound:", error);
+      console.error("❌ Failed to play keyboard sound:", error);
     }
   };
 

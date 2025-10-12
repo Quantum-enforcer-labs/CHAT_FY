@@ -17,8 +17,8 @@ interface AuthState {
   updateProfile: (data: UpdateProfileData) => Promise<void>;
   socket: Socket | null;
   connectSocket: () => void;
-  onlineUsers: string[];
   disconnectSocket: () => void;
+  onlineUsers: string[];
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -30,10 +30,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   checkAuth: async () => {
     try {
       const res = await axiosInstance.get("/auth/check-auth");
-
-      const userData =
-        res.data && res.data.message ? res.data.message : res.data;
-
+      const userData = res.data?.message ?? res.data;
       set({ authUser: userData });
     } catch (error) {
       console.error("Error checking auth", error);
@@ -44,7 +41,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   setAuthUser: (user) => set({ authUser: user }),
-  clearAuth: () => set({ authUser: null }),
+  clearAuth: () => {
+    const socket = get().socket;
+    if (socket?.connected) {
+      socket.disconnect();
+    }
+    set({ authUser: null, socket: null, onlineUsers: [] });
+  },
 
   updateProfile: async (data) => {
     try {
@@ -55,9 +58,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      const updatedUser =
-        res.data && res.data.message ? res.data.message : res.data;
-
+      const updatedUser = res.data?.message ?? res.data;
       set({ authUser: updatedUser });
       toast.success("Profile updated successfully");
     } catch (err: unknown) {
@@ -69,22 +70,41 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   connectSocket: () => {
-    const { authUser } = get();
-    if (!authUser) return;
+    const { authUser, socket } = get();
+    if (!authUser || socket?.connected) return;
 
-    const socket = io(BASE_URL, { withCredentials: true });
-    socket.connect();
+    const newSocket = io(BASE_URL, { withCredentials: true });
 
-    set({ socket });
+    newSocket.on("connect", () => {
+      console.log("✅ Socket connected:", newSocket.id);
+      newSocket.emit("join", { userId: authUser.id });
+    });
 
-    socket.on("getOnlineUsers", (userIds: string[]) => {
-      console.log("Online users:", userIds);
+    newSocket.on("connect_error", (err) => {
+      console.error("❌ Socket connection error:", err.message);
+    });
+
+    newSocket.on("disconnect", (reason) => {
+      console.warn("⚠️ Socket disconnected:", reason);
+    });
+
+    newSocket.on("getOnlineUsers", (userIds: string[]) => {
+      console.log("👥 Online users:", userIds);
       set({ onlineUsers: userIds });
     });
+
+    set({ socket: newSocket });
   },
 
   disconnectSocket: () => {
     const socket = get().socket;
-    if (socket?.connected) socket.disconnect();
+    if (socket?.connected) {
+      socket.off("getOnlineUsers");
+      socket.off("connect");
+      socket.off("disconnect");
+      socket.off("connect_error");
+      socket.disconnect();
+      set({ socket: null, onlineUsers: [] });
+    }
   },
 }));

@@ -3,6 +3,7 @@ import type { Contact, Message, MessageData } from "../types/types";
 import { axiosInstance } from "../lib/axios";
 import toast from "react-hot-toast";
 import { AxiosError } from "axios";
+import { useAuthStore } from "./useAuth";
 
 // Define the store state interface
 interface ChatState {
@@ -22,6 +23,8 @@ interface ChatState {
   getMyChatPartners: () => Promise<void>;
   getMessagesByUserId: (id: string) => Promise<void>;
   sendMessage: (data: MessageData) => Promise<void>;
+  subscribeToMessages: () => void;
+  unsubscribeFromMessages: () => void;
 }
 
 // Create the store
@@ -101,5 +104,32 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const error = err as AxiosError<{ message?: string }>;
       toast.error(error.response?.data?.message ?? "Error sending message");
     }
+  },
+  subscribeToMessages: () => {
+    const { selectedUser, isSoundOn } = get();
+
+    if (!selectedUser) return;
+
+    const socket = useAuthStore.getState().socket;
+
+    socket?.on("newMessage", (newMessage) => {
+      const isMessageFromSelectedUser =
+        newMessage.senderId === selectedUser._id;
+
+      if (!isMessageFromSelectedUser) return;
+      const currentMessages = get().messages;
+      set({ messages: [...currentMessages, newMessage] });
+
+      if (isSoundOn) {
+        const audio = new Audio("/notification.mp3");
+        audio.currentTime = 0;
+        audio.play();
+      }
+    });
+  },
+
+  unsubscribeFromMessages: () => {
+    const socket = useAuthStore.getState().socket;
+    socket?.off("newMessage");
   },
 }));

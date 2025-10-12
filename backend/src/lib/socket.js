@@ -1,7 +1,7 @@
 import { Server } from "socket.io";
 import http from "http";
 import express from "express";
-import { ENV } from "../lib/env.js";
+import { ENV } from "./env.js";
 import { socketAuthMiddleware } from "../middleware/socket.auth.middleware.js";
 
 const app = express();
@@ -9,38 +9,37 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: ENV.CLIENT_URL, // e.g. "http://localhost:5173"
+    origin: [ENV.CLIENT_URL],
     credentials: true,
   },
 });
 
-// ✅ Authenticate every socket connection
+// apply authentication middleware to all socket connections
 io.use(socketAuthMiddleware);
 
-// Map of userId → socket.id
-const userSocketMap = {};
+// we will use this function to check if the user is online or not
+export function getReceiverSocketId(userId) {
+  return userSocketMap[userId];
+}
+
+// this is for storig online users
+const userSocketMap = {}; // {userId:socketId}
 
 io.on("connection", (socket) => {
+  console.log("A user connected", socket.user.fullName);
+
   const userId = socket.userId;
-
-  if (!userId) {
-    console.warn("❌ Socket connected without valid userId");
-    socket.disconnect(true);
-    return;
-  }
-
-  console.log(`✅ User connected: ${userId}`);
   userSocketMap[userId] = socket.id;
 
-  // Send online users to all clients
+  // io.emit() is used to send events to all connected clients
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
-  // Handle disconnect
+  // with socket.on we listen for events from clients
   socket.on("disconnect", () => {
-    console.log(`❌ User disconnected: ${userId}`);
+    console.log("A user disconnected", socket.user.fullName);
     delete userSocketMap[userId];
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
   });
 });
 
-export { io, server, app };
+export { io, app, server };

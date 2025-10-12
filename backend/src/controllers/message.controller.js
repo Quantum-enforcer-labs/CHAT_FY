@@ -1,7 +1,8 @@
 import Message from "../models/Messages.model.js";
 import User from "../models/User.model.js";
 import { imagekit } from "../lib/imageKit.js";
-import message from "../models/Messages.model.js";
+import { getReceiverSocketId } from "../lib/socket.js";
+import { io } from "../lib/socket.js";
 
 export const getContacts = async (req, res) => {
   try {
@@ -119,6 +120,11 @@ export const sendMessage = async (req, res) => {
     });
 
     await newMessage.save();
+
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emmit("newMessage", newMessage);
+    }
 
     return res.status(201).json(newMessage);
   } catch (error) {
