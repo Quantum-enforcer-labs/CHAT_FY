@@ -3,6 +3,10 @@ import { axiosInstance } from "../lib/axios";
 import type { User, UpdateProfileData } from "../types/types";
 import toast from "react-hot-toast";
 import { AxiosError } from "axios";
+import { io, Socket } from "socket.io-client";
+
+const BASE_URL =
+  import.meta.env.MODE === "development" ? "http://localhost:5000" : "/";
 
 interface AuthState {
   authUser: User | null;
@@ -11,11 +15,17 @@ interface AuthState {
   setAuthUser: (user: User | null) => void;
   clearAuth: () => void;
   updateProfile: (data: UpdateProfileData) => Promise<void>;
+  socket: Socket | null;
+  connectSocket: () => void;
+  onlineUsers: string[];
+  disconnectSocket: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   authUser: null,
   isCheckingAuth: true,
+  socket: null,
+  onlineUsers: [],
 
   checkAuth: async () => {
     try {
@@ -45,7 +55,6 @@ export const useAuthStore = create<AuthState>((set) => ({
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      // ✅ Handle both response shapes again
       const updatedUser =
         res.data && res.data.message ? res.data.message : res.data;
 
@@ -57,5 +66,25 @@ export const useAuthStore = create<AuthState>((set) => ({
       toast.error(message);
       throw new Error(message);
     }
+  },
+
+  connectSocket: () => {
+    const { authUser } = get();
+    if (!authUser) return;
+
+    const socket = io(BASE_URL, { withCredentials: true });
+    socket.connect();
+
+    set({ socket });
+
+    socket.on("getOnlineUsers", (userIds: string[]) => {
+      console.log("Online users:", userIds);
+      set({ onlineUsers: userIds });
+    });
+  },
+
+  disconnectSocket: () => {
+    const socket = get().socket;
+    if (socket?.connected) socket.disconnect();
   },
 }));

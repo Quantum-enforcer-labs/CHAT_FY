@@ -5,7 +5,7 @@ import { LogOutIcon, Volume2Icon, VolumeOff } from "lucide-react";
 import { useLogout } from "../hooks/userAuthLogic";
 
 const ProfileHeader = () => {
-  const { authUser, updateProfile } = useAuthStore();
+  const { authUser, updateProfile, onlineUsers } = useAuthStore();
   const { isSoundOn, toggleSound } = useChatStore();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
@@ -31,6 +31,8 @@ const ProfileHeader = () => {
     reader.readAsDataURL(file);
   };
 
+  const isOnline = authUser?.id ? onlineUsers.includes(authUser.id) : false;
+
   return (
     <div className="px-4 py-3 border-b border-slate-700/50 bg-gradient-to-r from-slate-900 via-slate-900/90 to-slate-900/80 backdrop-blur-sm shadow-md rounded-b-lg">
       <div className="flex items-center justify-between">
@@ -46,8 +48,10 @@ const ProfileHeader = () => {
                 src={
                   selectedImage || authUser?.profilePic || "/profile_pic.jpg"
                 }
-                alt="User"
-                className="w-full h-full object-cover"
+                alt={authUser?.fullName || "User"}
+                className={`w-full h-full object-cover ${
+                  isOnline ? "avatar-online" : "avatar-offline"
+                }`}
               />
               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300 ease-in-out">
                 <span className="text-white text-[10px] font-medium">
@@ -55,6 +59,7 @@ const ProfileHeader = () => {
                 </span>
               </div>
             </button>
+
             <input
               type="file"
               accept="image/*"
@@ -69,15 +74,19 @@ const ProfileHeader = () => {
             <h3 className="text-slate-200 font-medium text-sm max-w-[150px] truncate">
               {authUser?.fullName || "User"}
             </h3>
-            <p className="text-xs text-green-400 flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-              Online
+            <p
+              className={`text-xs flex items-center gap-1 ${
+                isOnline ? "text-green-400" : "text-slate-500"
+              }`}
+            >
+              {isOnline ? "Online" : "Offline"}
             </p>
           </div>
         </div>
 
         {/* Right Section */}
         <div className="flex items-center gap-3">
+          {/* Logout */}
           <button
             onClick={() => logOut()}
             className="p-2 rounded-full bg-slate-800/60 hover:bg-red-500/10 text-red-400 hover:text-red-300 transition-all duration-300 hover:shadow-[0_0_10px_rgba(239,68,68,0.3)]"
@@ -85,6 +94,7 @@ const ProfileHeader = () => {
             <LogOutIcon className="w-5 h-5" />
           </button>
 
+          {/* Sound Toggle */}
           <button
             className={`p-2 rounded-full bg-slate-800/60 hover:bg-slate-700 transition-all duration-300 ${
               isSoundOn

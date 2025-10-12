@@ -3,7 +3,6 @@ import { PageLoader } from "../../components/PageLoader";
 import { useEffect, useState } from "react";
 import { useSignup } from "../../hooks/userAuthLogic";
 import { useAuthStore } from "../../store/useAuth";
-import toast from "react-hot-toast";
 
 export const Route = createFileRoute("/auth/signup")({
   component: RouteComponent,
@@ -25,7 +24,7 @@ function RouteComponent() {
     }
   }, [authUser, navigate, isCheckingAuth]);
 
-  const { mutate, status, error } = useSignup();
+  const { mutate } = useSignup();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -48,14 +47,6 @@ function RouteComponent() {
       password: "",
     });
   };
-
-  useEffect(() => {
-    if (status === "success") {
-      toast.success("Signup successful! Welcome aboard.");
-    } else if (status === "error") {
-      toast.error(error.message);
-    }
-  }, [status, error]);
 
   if (isCheckingAuth) return <PageLoader />;
 

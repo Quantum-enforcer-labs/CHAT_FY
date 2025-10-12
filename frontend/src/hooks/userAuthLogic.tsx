@@ -11,6 +11,8 @@ export function useSignup() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+  const connectSocket = useAuthStore((s) => s.connectSocket);
+
   return useMutation({
     mutationKey: ["user"],
     mutationFn: async (data: User) => {
@@ -30,6 +32,7 @@ export function useSignup() {
     onSuccess: (data) => {
       setAuthUser(data.user);
       toast.success("Account created successfully");
+      connectSocket();
       navigate({ to: "/" });
       queryClient.invalidateQueries({ queryKey: ["user"] });
     },
@@ -43,6 +46,8 @@ export function useSignup() {
 export function useLogin() {
   const setAuthUser = useAuthStore((s) => s.setAuthUser);
   const navigate = useNavigate();
+
+  const connectSocket = useAuthStore((s) => s.connectSocket);
 
   return useMutation({
     mutationFn: async (data: Credentials) => {
@@ -63,6 +68,7 @@ export function useLogin() {
       setAuthUser(data.user);
       navigate({ to: "/" });
       toast.success("Logged in successfully");
+      connectSocket();
     },
     onError: (error) => {
       setAuthUser(null);
@@ -75,6 +81,8 @@ export function useLogout() {
   const clearAuth = useAuthStore((s) => s.clearAuth);
   const navigate = useNavigate();
 
+  const disconnectSocket = useAuthStore((s) => s.disconnectSocket);
+
   return useMutation({
     mutationFn: async () => {
       await axiosInstance.post("/auth/logout");
@@ -83,6 +91,7 @@ export function useLogout() {
       clearAuth();
       navigate({ to: "/auth/login" });
       toast.success("Logged out successfully");
+      disconnectSocket();
     },
   });
 }

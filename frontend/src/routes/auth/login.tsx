@@ -3,7 +3,6 @@ import { useAuthStore } from "../../store/useAuth";
 import { PageLoader } from "../../components/PageLoader";
 import { useEffect, useState } from "react";
 import { useLogin } from "../../hooks/userAuthLogic";
-import toast from "react-hot-toast";
 
 export const Route = createFileRoute("/auth/login")({
   component: RouteComponent,
@@ -12,7 +11,7 @@ export const Route = createFileRoute("/auth/login")({
 function RouteComponent() {
   const { authUser, isCheckingAuth, checkAuth } = useAuthStore();
   const navigate = useNavigate();
-  const { mutate, status, error } = useLogin();
+  const { mutate } = useLogin();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -28,14 +27,6 @@ function RouteComponent() {
       navigate({ to: "/" });
     }
   }, [authUser, navigate, isCheckingAuth]);
-
-  useEffect(() => {
-    if (status === "error") {
-      toast.error(error.message || "Login failed. Please try again.");
-    } else if (status === "success") {
-      toast.success("Login successful! Welcome back.");
-    }
-  }, [status, error]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
